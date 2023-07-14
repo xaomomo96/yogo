@@ -1,0 +1,22 @@
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xaaaaaaaaaaa zz    a   AAAAAAAA      z x
+x        aaa        AAAAAAAAAAAA       x
+x       z                 AAAAA        x
+x                                      x
+x    aa  aa                    AAA     x
+x       aa                    A        x
+x                             A        x
+x                             A        x
+x                             A        x
+x                             A        x
+x            B                         x
+x           B B           z            x
+x            B                         x
+x           B                          x
+x                                      x
+x                                      x
+x            aa                        x
+x         aaaaa           z            x
+x                                      x
+x                                   z  x
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
