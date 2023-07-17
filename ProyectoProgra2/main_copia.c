@@ -10,7 +10,8 @@
 #define columna alto/30
 #define alto 1200
 #define ancho 720
-#define num_enemigos 5
+#define num_enemigos 6
+
 //=====ESTRUCTURAS===============================================================
 struct personaje{
 	int x;
@@ -72,28 +73,32 @@ int main(){
 
 	for (i = 0; i < num_enemigos; i++){
 	    gato_zombie[i].id = i; 
-	 	gato_zombie[i].x;
-	    gato_zombie[i].y;
+	    gato_zombie[i].x = 600-i*30;
+	    gato_zombie[i].y = 60+i*30;
 	    gato_zombie[i].PS = 100;
-	    if(i < 3)
+	    if(i < num_enemigos-2)
 	    	gato_zombie[i].direccion = 1;
 	    else
 	    	gato_zombie[i].direccion = 3;
 	}
-	
 	leer_archivo(mapa,mapa_file);
 	cargar_imagen(gato_jugador);
 	dibujar_mapa(mapa);
 
-
 	while (!key[KEY_ESC]) {	
 		gato_jugador=movi(gato_jugador, mapa);
-		dibujar_personajes(mapa,gato_jugador, gato_zombie);
-		
 		for ( i = 0; i < num_enemigos; i++){
         	gato_zombie[i] = movi_zombie_simp(gato_zombie[i], mapa);
     	}		
-				
+    	dibujar_mapa(mapa);
+		textprintf_ex(screen, font,100,200, makecol(255, 255, 255), -1, "PS = %d", gato_jugador.PS);
+		for (i = 0; i < num_enemigos; i++){
+			if (mapa[gato_jugador.y / 30][(gato_jugador.x / 30)+1] == mapa[gato_zombie[i].y / 30][gato_zombie[i].x / 30]){
+				gato_jugador.PS -= 20;
+				dibujar_personajes(mapa,gato_jugador, gato_zombie);
+			}
+		}
+		
 	    blit(buffer,screen,0,0,0,0,alto,ancho);
 	    clear_bitmap(buffer);
 	  
@@ -110,7 +115,9 @@ END_OF_MAIN()
 
 //=============MOVIMIENTO_Y_COLISION==============================================================================
 
-jugador movi (jugador gato_jugador, char mapa[fila][columna]){
+jugador movi (jugador gato_jugador, char mapa[fila][columna])
+{
+	
     if (key[KEY_W]) {
         if (mapa[(gato_jugador.y-30)/30][gato_jugador.x/30] != 'x') 
 			gato_jugador.y -=30;	
@@ -119,12 +126,14 @@ jugador movi (jugador gato_jugador, char mapa[fila][columna]){
         if (mapa[(gato_jugador.y+30)/30][gato_jugador.x/30] != 'x' ) 
 			gato_jugador.y +=30;	
     }
+
     if (key[KEY_A]){
         if (mapa[gato_jugador.y/30][(gato_jugador.x-30)/30] != 'x' ){
 			gato_jugador.x -=30;
 			gato = load_bitmap("media/gato2.bmp",NULL);
 		}			
     }
+
     if (key[KEY_D]) {
         if (mapa[gato_jugador.y/30][(gato_jugador.x+30)/30] != 'x' ) {
 			gato_jugador.x +=30;
@@ -157,6 +166,7 @@ zombie movi_zombie_simp(zombie gato_zombie, char mapa[fila][columna]){
 			else
 				dir = rand() % num_enemigos;
 		}
+
 	}
 	else if (dir == 3){
 		if (mapa[(gato_zombie.y-30) / 30][gato_zombie.x/ 30] == ' ')
@@ -185,17 +195,17 @@ zombie movi_zombie_simp(zombie gato_zombie, char mapa[fila][columna]){
 
 void leer_archivo(char mapa[fila][columna], FILE *mapa_file){
 	int i, j,aux;
-	
 	if ((mapa_file=fopen("mapa1.txt","r"))==NULL){
     	printf("Error al abrir archivo");
 	    return;
     }
     else {
-    	for(i=0;i<fila;i++)
+    	for(i=0;i<fila;i++){
 			for(j=0;j<columna;j++){
 				fscanf(mapa_file,"%c",&mapa[i][j]);
 			}
 			fscanf(mapa_file, "%c", &aux);
+		}
 	}
 	fclose(mapa_file);
 }
@@ -208,23 +218,23 @@ void cargar_imagen(jugador gato_jugador){
 	pared = create_bitmap(30,30);
 	arbol = create_bitmap(30,30);
 	arbol2 = create_bitmap(30,30);
+	arboles = create_bitmap(30,90);
 	vida = create_bitmap(30,90);
-	//==========================================================================
 	fondo = load_bitmap("media/fondo.bmp",NULL);
 	gato = load_bitmap("media/gato.bmp",NULL);
 	gato_zombie2 = load_bitmap("media/gato_zombie2.bmp",NULL);
 	pared = load_bitmap("media/pared.bmp",NULL);
 	arbol = load_bitmap("media/arbol.bmp",NULL);
 	arbol2 = load_bitmap("media/arbol2.bmp",NULL);
-	vida = load_bitmap("media/vida_100.bmp",NULL);
+	arboles = load_bitmap("media/arboleda.bmp",NULL);
+	if(gato_jugador.PS==100)
+		vida = load_bitmap("media/vida_100.bmp",NULL);
 }
 
 void dibujar_mapa(char mapa[fila][columna]){
 	int i, j;
-	
 	draw_sprite(buffer, fondo, 0, 0);
 	draw_sprite(fondo, vida, 30, 30);
-	
 	for (i = 0; i < fila; i++){
 	    for (j = 0; j < columna; j++){
 	        if (mapa[i][j] == 'x')
@@ -239,23 +249,25 @@ void dibujar_mapa(char mapa[fila][columna]){
 	}
 }
 
-void dibujar_personajes(char mapa[fila][columna], jugador gato_jugador, zombie gato_zombie[]){
-	int i, j;
-	
-	masked_blit(gato, buffer, 0, 0, gato_jugador.x, gato_jugador.y, 30, 30);
-	for (i = 0; i < fila; i++){
-	    for (j = 0; j < columna; j++){
-	        if(mapa[i][j]== 'z')
-	        	masked_blit(gato_zombie2, buffer, 0, 0, j*30, i*30, 30, 30);
-	    }
-	}
+void dibujar_personajes(char mapa[fila][columna], jugador gato_jugador, zombie gato_zombie[]) {
+    int i, j;
+    masked_blit(gato, buffer, 0, 0, gato_jugador.x, gato_jugador.y, 30, 30);
+    
+    for (i = 0; i < fila; i++) {
+        for (j = 0; j < columna; j++) {
+            if (mapa[i][j] == 'z') {
+                gato_zombie[j / 30].x = j * 30;
+                gato_zombie[j / 30].y = i * 30;
+                masked_blit(gato_zombie2, buffer, 0, 0, gato_zombie[j / 30].x, gato_zombie[j / 30].y, 30, 30);
+            }
+        }
+    }
 }
 
 
 void limpia(){
 	destroy_bitmap(fondo);
 	destroy_bitmap(gato);
-	destroy_bitmap(gato_zombie2);
 	destroy_bitmap(pared);
 	destroy_bitmap(vida);
 }
